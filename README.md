@@ -1,51 +1,90 @@
-# Lista de Filmes (React + Express)
+# Lista de Filmes
 
-Aplicação web para gerenciar o cadastro de filmes com atores (relação muitos-para-muitos).
+Plataforma completa para catalogação de filmes e gerenciamento de elenco, composta por uma API REST com documentação interativa e um frontend simples em Vue 3. O projeto prioriza clareza arquitetural, modelagem de dados sólida e automação de carga inicial.
 
-Requisitos implementados:
-- CRUD de filmes (título, faixa etária, gênero, atores). 
-- Entidade Ator separada; um filme tem vários atores e um ator pode estar em vários filmes.
-- Validação de formulários no frontend e validação de entrada no backend via middleware.
-- Backend em Express.js com camadas: routes, controller, service, error (middlewares) e storage JSON simples.
-- Frontend em React consumindo a API.
+- Backend: Node.js + Express, persistência em Supabase (Postgres gerenciado) e documentação via Swagger.
+- Frontend: Vue 3 (Vite) com interface para operações essenciais (health, seed, CRUD de filmes e atores).
+- Integração: Importação automática (seed) de títulos a partir de fonte externa (tv-api.com), de forma idempotente.
 
-## Como executar
+## Arquitetura
 
-1. Instale as dependências:
-   - `npm install`
+- API REST em Express, servida em `/api`.
+- Documentação OpenAPI/Swagger em `/api/docs` (especificação JSON em `/api/openapi.json`).
+- Supabase como camada de dados (tabelas: actors, movies, movie_actors) com RLS e policies de desenvolvimento.
+- Frontend Vue servido em desenvolvimento via Vite (proxy para `/api`).
 
-2. Inicie a API (porta 3001):
-   - `npm run server`
-   - Health check: http://localhost:3001/api/health
+## Principais funcionalidades
 
-3. Em outra janela, inicie o frontend (Vite, porta 5173 por padrão):
-   - `npm run dev`
+- Catálogo de filmes com título, gênero e faixa etária.
+- Gestão de atores e relacionamento N:N com filmes.
+- Seed automático/acionável para importar filmes da API externa (tv-api.com).
+- Documentação interativa da API e validação de entrada no backend.
 
-4. Configure a URL da API (opcional):
-   - Em desenvolvimento, o frontend usa base relativa `/api` e o Vite faz proxy para `http://localhost:3001` (ver `vite.config.js`).
-   - Você pode sobrescrever criando um arquivo `.env` na raiz com: 
-     - `VITE_API_BASE=http://localhost:3001/api`
+## Modelo de dados
 
-## Estrutura da API
-- `server/index.js` – bootstrap do Express e middlewares (CORS, JSON, erros).
-- `server/routes/*` – rotas de filmes e atores.
-- `server/controllers/*` – controladores delegando para serviços.
-- `server/services/*` – lógica de negócios (CRUD, integrações e validações).
-- `server/middlewares/*` – validação de entrada e tratamento centralizado de erros.
-- `server/storage/db.js` – persistência simples em arquivo JSON.
+Entidades:
+- Actor(id, nome)
+- Movie(id, titulo, faixaEtaria, genero)
 
-## Endpoints principais
-- `GET /api/actors` – lista atores
-- `POST /api/actors { nome }` – cria ator
-- `GET /api/movies` – lista filmes (com `atoresDetalhes`)
-- `POST /api/movies { titulo, faixaEtaria, genero, atores[] }` – cria filme
-- `PUT /api/movies/:id` – atualiza filme
-- `DELETE /api/movies/:id` – exclui filme
+Relacionamento:
+- Movie N..N Actor por meio da tabela de junção `movie_actors(movie_id, actor_id)`.
 
-## Frontend
-- `src/components/MovieList.jsx` – lista filmes e permite criar/editar/excluir.
-- `src/components/MovieForm.jsx` – formulário com validação e seleção múltipla de atores, incluindo criação rápida de ator.
+Diagrama (simplificado):
+```
+Actors (id PK) <---- movie_actors ----> Movies (id PK)
+          ^ actor_id           movie_id ^
+```
 
-## Observações
-- A persistência usa arquivo JSON (`server/data/db.json`) apenas para facilitar o teste local.
-- Validações no backend retornam status 400/409, e o frontend exibe mensagens amigáveis.
+## Endpoints da API (resumo)
+
+Base: `/api`
+
+- GET `/health` — status da API
+- POST `/seed` — importa filmes da fonte externa (idempotente)
+
+Atores:
+- GET `/actors`
+- GET `/actors/{id}`
+- POST `/actors` { nome }
+- PUT `/actors/{id}` { nome }
+- DELETE `/actors/{id}`
+
+Filmes:
+- GET `/movies`
+- GET `/movies/{id}`
+- POST `/movies` { titulo, faixaEtaria, genero, atores[] }
+- PUT `/movies/{id}` { titulo?, faixaEtaria?, genero?, atores? }
+- DELETE `/movies/{id}`
+
+Para schemas e exemplos completos, utilize o Swagger em `/api/docs`.
+
+## Configuração
+
+Variáveis de ambiente (arquivo `.env` na raiz):
+- PORT=3001
+- SUPABASE_URL=https://<seu-projeto>.supabase.co
+- SUPABASE_KEY=<chave_anon_ou_service>
+- VITE_API_BASE=/api
+- EXTERNAL_API_URL (opcional)
+- EXTERNAL_API_KEY e EXTERNAL_API_KEY_HEADER (opcionais)
+
+No Supabase, certifique-se de provisionar as tabelas `actors`, `movies` e `movie_actors` e habilitar políticas apropriadas (RLS) para leitura/escrita durante desenvolvimento.
+
+## Execução
+
+- Instalação: `npm install`
+- API (dev): `npm run server:dev` — disponível em `http://localhost:3001/api`
+- Swagger: `http://localhost:3001/api/docs`
+- Frontend (dev): `npm run vue:dev` (pasta `vue-app`) — acessível em `http://localhost:5174`
+- Seed manual: POST `/api/seed` (via Swagger)
+
+## Estrutura do repositório
+
+- `server/` — API Express (rotas, controllers, services, seed e integração Supabase)
+- `vue-app/` — Frontend Vue 3 (Vite) com interface para operações essenciais
+- `README.md` — visão geral, modelo de dados e resumo dos endpoints
+
+## Referências
+
+- Swagger da API externa (tv-api.com): https://tv-api.com/swagger/index.html
+- Swagger da API do projeto: `/api/docs`

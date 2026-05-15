@@ -1,48 +1,45 @@
-import { loadDB, saveDB } from '../storage/db.js';
+import { supabase } from '../storage/supabase.js';
 import { HttpError } from '../middlewares/error.js';
 
-export function listActors() {
-  const db = loadDB();
-  return db.actors;
+export async function listActors() {
+  const { data, error } = await supabase.from('actors').select('*').order('id', { ascending: true });
+  if (error) throw new HttpError(500, 'Erro ao listar atores', error);
+  return data || [];
 }
 
-export function getActorById(id) {
-  const db = loadDB();
-  const actor = db.actors.find((a) => a.id === id);
-  if (!actor) throw new HttpError(404, 'Ator não encontrado');
-  return actor;
+export async function getActorById(id) {
+  const { data, error } = await supabase.from('actors').select('*').eq('id', id).maybeSingle();
+  if (error) throw new HttpError(500, 'Erro ao buscar ator', error);
+  if (!data) throw new HttpError(404, 'Ator não encontrado');
+  return data;
 }
 
-export function createActor({ nome }) {
-  const db = loadDB();
-  const exists = db.actors.find((a) => a.nome.toLowerCase() === nome.toLowerCase());
+export async function createActor({ nome }) {
+  // Unique by nome
+  const { data: exists, error: e1 } = await supabase.from('actors').select('id').ilike('nome', nome).maybeSingle();
+  if (e1 && e1.code !== 'PGRST116') throw new HttpError(500, 'Erro ao verificar ator', e1);
   if (exists) throw new HttpError(409, 'Ator já existe');
-  const id = db.nextIds.actor++;
-  const actor = { id, nome };
-  db.actors.push(actor);
-  saveDB(db);
-  return actor;
+  const { data, error } = await supabase.from('actors').insert([{ nome }]).select('*').single();
+  if (error) throw new HttpError(500, 'Erro ao criar ator', error);
+  return data;
 }
 
-export function updateActor(id, { nome }) {
-  const db = loadDB();
-  const idx = db.actors.findIndex((a) => a.id === id);
-  if (idx === -1) throw new HttpError(404, 'Ator não encontrado');
-  // Check uniqueness
-  const exists = db.actors.find((a) => a.nome.toLowerCase() === nome.toLowerCase() && a.id !== id);
-  if (exists) throw new HttpError(409, 'Outro ator com esse nome já existe');
-  db.actors[idx].nome = nome;
-  saveDB(db);
-  return db.actors[idx];
+export async function updateActor(id, { nome }) {
+  // Ensure not duplicate name
+  const { data: dup, error: e1 } = await supabase.from('actors').select('id').ilike('nome', nome);
+  if (e1) throw new HttpError(500, 'Erro ao verificar duplicidade', e1);
+  if ((dup || []).some((a) => a.id !== id)) throw new HttpError(409, 'Outro ator com esse nome já existe');
+  const { data, error } = await supabase.from('actors').update({ nome }).eq('id', id).select('*').maybeSingle();
+  if (error) throw new HttpError(500, 'Erro ao atualizar ator', error);
+  if (!data) throw new HttpError(404, 'Ator não encontrado');
+  return data;
 }
 
-export function deleteActor(id) {
-  const db = loadDB();
-  const idx = db.actors.findIndex((a) => a.id === id);
-  if (idx === -1) throw new HttpError(404, 'Ator não encontrado');
-  // Also remove relation from movies
-  db.movies = db.movies.map((m) => ({ ...m, atores: m.atores.filter((aid) => aid !== id) }));
-  const [removed] = db.actors.splice(idx, 1);
-  saveDB(db);
-  return removed;
+export async function deleteActor(id) {
+  const { error: relErr } = await supabase.from('movie_actors').delete().eq('actor_id', id);
+  if (relErr) throw new HttpError(500, 'Erro ao remover relações', relErr);
+  const { data, error } = await supabase.from('actors').delete().eq('id', id).select('*').maybeSingle();
+  if (error) throw new HttpError(500, 'Erro ao remover ator', error);
+  if (!data) throw new HttpError(404, 'Ator não encontrado');
+  return data;
 }
