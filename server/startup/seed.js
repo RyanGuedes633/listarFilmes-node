@@ -1,41 +1,15 @@
 import { supabase } from '../storage/supabase.js';
+import { buscarFilmes } from '../services/tmdb.js';
 
 async function fetchExternalMovies() {
-  const DEFAULT_ENDPOINTS = [
-    process.env.EXTERNAL_API_URL, // highest priority if provided
-    'https://tv-api.com/api/movies',
-    'https://tv-api.com/api/v1/movies',
-    'https://tv-api.com/api/movies/popular',
-    'https://tv-api.com/api/titles/movies',
-  ].filter(Boolean);
-
-  // Optional API key support
-  const key = process.env.EXTERNAL_API_KEY;
-  const keyHeader = process.env.EXTERNAL_API_KEY_HEADER || 'X-API-KEY';
-
-  for (const url of DEFAULT_ENDPOINTS) {
-    try {
-      const headers = {};
-      if (key) {
-        if (keyHeader.toLowerCase() === 'authorization' && !/^bearer\s/i.test(key)) {
-          headers['Authorization'] = `Bearer ${key}`;
-        } else {
-          headers[keyHeader] = key;
-        }
-      }
-      const res = await fetch(url, { headers });
-      if (!res.ok) continue;
-      const data = await res.json();
-      if (Array.isArray(data)) return data;
-      // Some APIs wrap data
-      if (data && Array.isArray(data.results)) return data.results;
-      if (data && Array.isArray(data.items)) return data.items;
-    } catch (e) {
-      // try next endpoint
-      continue;
-    }
+  try {
+    // Use the TMDB service, which already knows how to call the API with the key
+    const results = await buscarFilmes();
+    return Array.isArray(results) ? results : [];
+  } catch (e) {
+    console.warn('[Seed] Falha ao buscar filmes do TMDB:', e?.message || e);
+    return [];
   }
-  return [];
 }
 
 async function upsertActorByName(nome) {
