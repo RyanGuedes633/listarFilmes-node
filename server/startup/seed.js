@@ -1,5 +1,5 @@
 import { supabase } from '../storage/supabase.js';
-import { buscarFilmes } from '../services/tmdb.js';
+import { buscarFilmes, buscarElenco } from '../services/tmdb.js';
 
 async function fetchExternalMovies() {
   try {
@@ -84,9 +84,18 @@ export async function seedMoviesIfEmpty() {
       movieId = created.id;
     }
 
-    // Try to seed some actors if available
-    const cast = Array.isArray(item?.cast) ? item.cast : (Array.isArray(item?.actors) ? item.actors : []);
-    const actorNames = cast.slice(0, 5).map((n) => String(n).trim()).filter(Boolean);
+    // Try to seed some actors: from payload or fetch from TMDB credits
+    let cast = Array.isArray(item?.cast) ? item.cast : (Array.isArray(item?.actors) ? item.actors : []);
+    if ((!cast || cast.length === 0) && item?.id) {
+      try {
+        const names = await buscarElenco(item.id);
+        cast = Array.isArray(names) ? names : [];
+      } catch (e) {
+        console.warn('[Seed] Falha ao buscar elenco no TMDB para', titulo, e?.message);
+        cast = [];
+      }
+    }
+    const actorNames = (cast || []).slice(0, 5).map((n) => String(n).trim()).filter(Boolean);
     for (const nome of actorNames) {
       try {
         const actorId = await upsertActorByName(nome);
