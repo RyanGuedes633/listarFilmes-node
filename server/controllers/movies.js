@@ -1,10 +1,33 @@
-import { buscarFilmes } from '../services/tmdb.js';
+import { buscarFilmes, buscarGenerosTv, buscarClassificacaoTv } from '../services/tmdb.js';
 import * as service from '../services/movies.js';
 
 export const listTmdb = async (_req, res, next) => {
   try {
     const filmes = await buscarFilmes();
     res.json(filmes);
+  } catch (e) { next(e); }
+};
+
+export const favoriteFromTmdb = async (req, res, next) => {
+  try {
+    const body = req.body || {};
+    const titulo = body?.name || body?.title || 'Sem título';
+    let genero = 'Desconhecido';
+    try {
+      const map = await buscarGenerosTv();
+      const ids = Array.isArray(body?.genre_ids) ? body.genre_ids : [];
+      if (ids.length && map instanceof Map) {
+        const g = map.get(ids[0]);
+        if (g) genero = g;
+      }
+    } catch {}
+    let faixaEtaria = null;
+    try {
+      faixaEtaria = await buscarClassificacaoTv(body?.id);
+    } catch { faixaEtaria = null; }
+    if (faixaEtaria == null) faixaEtaria = 10;
+    const movie = await service.ensureMovieByTitulo(titulo, genero, faixaEtaria);
+    res.status(201).json(movie);
   } catch (e) { next(e); }
 };
 

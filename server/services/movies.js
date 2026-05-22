@@ -93,3 +93,25 @@ export async function deleteMovie(id) {
   if (!data) throw new HttpError(404, 'Filme não encontrado');
   return data;
 }
+
+// Garante que uma série exista pelo título (case-insensitive). Se não existir, cria.
+export async function ensureMovieByTitulo(titulo, genero, faixaEtaria) {
+  if (!titulo) throw new HttpError(400, 'Título é obrigatório');
+  const { data: exists, error: eErr } = await supabase
+    .from('movies')
+    .select('*')
+    .ilike('titulo', titulo)
+    .maybeSingle();
+  if (eErr && eErr.code !== 'PGRST116') throw new HttpError(500, 'Erro ao verificar série existente', eErr);
+  if (exists) {
+    // Opcionalmente poderíamos atualizar genero/faixaEtaria se vierem diferentes
+    return await getMovieById(exists.id);
+  }
+  const { data: created, error: cErr } = await supabase
+    .from('movies')
+    .insert([{ titulo, genero, faixaEtaria }])
+    .select('*')
+    .single();
+  if (cErr) throw new HttpError(500, 'Erro ao criar série favorita', cErr);
+  return await getMovieById(created.id);
+}
