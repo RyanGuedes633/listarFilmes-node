@@ -18,9 +18,9 @@ app.use(express.json());
 const swaggerDefinition = {
   openapi: '3.0.3',
   info: {
-    title: 'Lista Filmes API',
+    title: 'Lista Séries API',
     version: '1.0.0',
-    description: 'API para gerenciar filmes e atores com Supabase',
+    description: 'API para gerenciar séries e atores com Supabase',
   },
   servers: [{ url: '/api' }],
   components: {
@@ -51,23 +51,23 @@ const swaggerDefinition = {
       get: { summary: 'Status da API', responses: { '200': { description: 'ok' } } },
     },
     '/seed': {
-      post: { summary: 'Executar seed de filmes (idempotente)', responses: { '200': { description: 'Resumo do seed', content: { 'application/json': { schema: { type: 'object', properties: { inserted: { type: 'integer' }, skipped: { type: 'integer' }, errors: { type: 'array', items: { type: 'object' } }, note: { type: 'string' } } } } } } } },
+      post: { summary: 'Executar seed de séries (idempotente)', responses: { '200': { description: 'Resumo do seed', content: { 'application/json': { schema: { type: 'object', properties: { inserted: { type: 'integer' }, skipped: { type: 'integer' }, errors: { type: 'array', items: { type: 'object' } }, note: { type: 'string' } } } } } } } },
     },
     '/movies': {
       get: {
-        summary: 'Listar filmes',
-        responses: { '200': { description: 'Lista de filmes', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/Movie' } } } } } },
+        summary: 'Listar séries',
+        responses: { '200': { description: 'Lista de séries', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/Movie' } } } } } },
       },
       post: {
-        summary: 'Criar filme',
+        summary: 'Criar série',
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/Movie' } } } },
         responses: { '201': { description: 'Criado', content: { 'application/json': { schema: { $ref: '#/components/schemas/Movie' } } } }, '400': { description: 'Erro de validação', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } } },
       },
     },
     '/movies/{id}': {
-      get: { summary: 'Obter filme por ID', parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }], responses: { '200': { description: 'Filme', content: { 'application/json': { schema: { $ref: '#/components/schemas/Movie' } } } }, '404': { description: 'Não encontrado' } } },
-      put: { summary: 'Atualizar filme', parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }], requestBody: { content: { 'application/json': { schema: { $ref: '#/components/schemas/Movie' } } } }, responses: { '200': { description: 'Atualizado' } } },
-      delete: { summary: 'Remover filme', parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }], responses: { '200': { description: 'Removido' }, '404': { description: 'Não encontrado' } } },
+      get: { summary: 'Obter série por ID', parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }], responses: { '200': { description: 'Série', content: { 'application/json': { schema: { $ref: '#/components/schemas/Movie' } } } }, '404': { description: 'Não encontrado' } } },
+      put: { summary: 'Atualizar série', parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }], requestBody: { content: { 'application/json': { schema: { $ref: '#/components/schemas/Movie' } } } }, responses: { '200': { description: 'Atualizado' } } },
+      delete: { summary: 'Remover série', parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }], responses: { '200': { description: 'Removido' }, '404': { description: 'Não encontrado' } } },
     },
     '/actors': {
       get: { summary: 'Listar atores', responses: { '200': { description: 'Lista de atores', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/Actor' } } } } } } },
