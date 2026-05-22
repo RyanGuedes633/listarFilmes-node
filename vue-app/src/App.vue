@@ -2,7 +2,7 @@
   <main style="font-family: system-ui, sans-serif; padding: 1rem; max-width: 960px; margin: 0 auto;">
     <header style="display:flex; align-items:center; gap:1rem; justify-content:space-between;">
       <div>
-        <h1 style="margin:0;">Vue - Lista de Filmes</h1>
+        <h1 style="margin:0;">Vue - Lista de Séries</h1>
         <small style="opacity:.75">API: <code>{{ API_BASE }}</code> • <a href="/api/docs" target="_blank">Swagger</a></small>
       </div>
       <div>
@@ -12,7 +12,7 @@
     </header>
 
     <section style="margin-top:1rem; background:#f7f7f7; padding: .75rem; border-radius:8px;">
-      <strong>Seed de filmes:</strong>
+      <strong>Seed de séries:</strong>
       <button @click="runSeed" :disabled="seedLoading" style="margin-left:.5rem">Executar</button>
       <span v-if="seedMsg" style="margin-left:.5rem">{{ seedMsg }}</span>
     </section>
@@ -20,9 +20,9 @@
     <p v-if="error" style="color:crimson; margin-top: .5rem;">{{ error }}</p>
 
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.25rem;">
-      <!-- Filmes -->
+      <!-- Séries -->
       <section>
-        <h2>Filmes</h2>
+        <h2>Séries</h2>
         <button @click="loadAll" :disabled="loading">Recarregar</button>
         <p v-if="loading">Carregando...</p>
         <ul v-if="movies.length">
@@ -65,9 +65,9 @@
             </template>
           </li>
         </ul>
-        <p v-else-if="!loading">Nenhum filme encontrado.</p>
+        <p v-else-if="!loading">Nenhuma série encontrada.</p>
 
-        <h3 style="margin-top:1rem;">Novo Filme</h3>
+        <h3 style="margin-top:1rem;">Nova Série</h3>
         <form @submit.prevent="createMovie">
           <div>
             <label>Título</label>
@@ -174,7 +174,7 @@ async function loadMovies() {
     const res = await fetch(`${API_BASE}/movies`)
     movies.value = await res.json()
   } catch (e) {
-    error.value = e?.message || 'Falha ao carregar filmes'
+    error.value = e?.message || 'Falha ao carregar séries'
   } finally {
     loading.value = false
   }
@@ -208,18 +208,18 @@ async function saveMovie() {
     editMovie.value = null
     await loadMovies()
   } catch (e) {
-    error.value = e?.message || 'Falha ao atualizar filme'
+    error.value = e?.message || 'Falha ao atualizar série'
   }
 }
 
 async function removeMovie(m) {
-  if (!confirm(`Excluir o filme "${m.titulo}"?`)) return
+  if (!confirm(`Excluir a série "${m.titulo}"?`)) return
   try {
     const res = await fetch(`${API_BASE}/movies/${m.id}`, { method: 'DELETE' })
     if (!res.ok) throw new Error((await res.json()).error || 'Erro ao excluir')
     await loadMovies()
   } catch (e) {
-    error.value = e?.message || 'Falha ao excluir filme'
+    error.value = e?.message || 'Falha ao excluir série'
   }
 }
 

@@ -1,13 +1,13 @@
 import { supabase } from '../storage/supabase.js';
-import { buscarFilmes, buscarElenco } from '../services/tmdb.js';
+import { buscarFilmes, buscarElenco, buscarGenerosTv, buscarClassificacaoTv } from '../services/tmdb.js';
 
 async function fetchExternalMovies() {
   try {
-    // Use the TMDB service, which already knows how to call the API with the key
+    // Usa o serviço do TMDB (agora para séries)
     const results = await buscarFilmes();
     return Array.isArray(results) ? results : [];
   } catch (e) {
-    console.warn('[Seed] Falha ao buscar filmes do TMDB:', e?.message || e);
+    console.warn('[Seed] Falha ao buscar séries do TMDB:', e?.message || e);
     return [];
   }
 }
@@ -35,37 +35,52 @@ export async function seedMoviesIfEmpty() {
   let skipped = 0;
   const errors = [];
 
-  // Check if there are any movies already using count
+  // Verifica se já existem registros
   const { count, error: cErr } = await supabase
     .from('movies')
     .select('id', { count: 'exact', head: true });
   if (cErr) {
     console.warn('[Seed] Could not check movies count:', cErr.message);
-    return { inserted, skipped, errors, note: 'Falha ao consultar quantidade de filmes. Verifique SUPABASE_URL/KEY e RLS/policies.' };
+    return { inserted, skipped, errors, note: 'Falha ao consultar quantidade de séries. Verifique SUPABASE_URL/KEY e RLS/policies.' };
   }
   if (typeof count === 'number' && count > 0) {
-    console.log('[Seed] Movies already present, skipping external import');
-    return { inserted, skipped, errors, note: 'Já havia filmes. Nada a fazer.' };
+    console.log('[Seed] Séries já presentes, ignorando import externo');
+    return { inserted, skipped, errors, note: 'Já havia séries. Nada a fazer.' };
   }
 
   const external = await fetchExternalMovies();
   if (!external.length) {
-    console.log('[Seed] No external movies fetched');
-    return { inserted, skipped, errors, note: 'Nenhum filme retornado da API externa.' };
+    console.log('[Seed] Nenhuma série externa obtida');
+    return { inserted, skipped, errors, note: 'Nenhuma série retornada da API externa.' };
   }
 
-  // Map and insert a subset (avoid huge insert)
+  // Pré-carrega mapa de gêneros de TV (id -> nome pt-BR)
+  let genresMap;
+  try { genresMap = await buscarGenerosTv(); } catch (e) { console.warn('[Seed] Falha ao buscar gêneros de TV:', e?.message); genresMap = new Map(); }
+
+  // Limita a amostra para evitar inserts massivos
   const sample = external.slice(0, 20);
 
   for (const item of sample) {
-    const titulo = item?.title || item?.name || 'Sem título';
-    const genero = Array.isArray(item?.genres) && item.genres.length ? item.genres[0] : (item?.genre || 'Ação');
-    const faixaEtaria = typeof item?.rating === 'number' ? Math.max(0, Math.min(18, Math.round(item.rating))) : 12;
+    const titulo = item?.name || item?.title || 'Sem título';
 
-    // Check duplicate by case-insensitive title
+    // Mapeia gênero: usa primeiro id de genre_ids -> nome via mapa (fallback: 'Desconhecido')
+    let genero = 'Desconhecido';
+    const ids = Array.isArray(item?.genre_ids) ? item.genre_ids : [];
+    if (ids.length && genresMap instanceof Map) {
+      const firstName = genresMap.get(ids[0]);
+      if (firstName) genero = firstName;
+    }
+
+    // Classificação indicativa via TMDB content_ratings
+    let faixaEtaria = null;
+    try { faixaEtaria = await buscarClassificacaoTv(item?.id); } catch (e) { faixaEtaria = null; }
+    if (faixaEtaria == null) faixaEtaria = 10; // fallback mais neutro que 12
+
+    // Evita duplicado por título (case-insensitive)
     const { data: exists, error: eErr } = await supabase.from('movies').select('id').ilike('titulo', titulo).maybeSingle();
     if (eErr && eErr.code !== 'PGRST116') {
-      console.warn('[Seed] Skip movie due to error searching', titulo, eErr.message);
+      console.warn('[Seed] Pular série por erro na busca', titulo, eErr.message);
       errors.push({ titulo, stage: 'search', message: eErr.message });
       continue;
     }
@@ -76,7 +91,7 @@ export async function seedMoviesIfEmpty() {
     } else {
       const { data: created, error: mErr } = await supabase.from('movies').insert([{ titulo, genero, faixaEtaria }]).select('*').single();
       if (mErr) {
-        console.warn('[Seed] Failed to create movie', titulo, mErr.message);
+        console.warn('[Seed] Falha ao criar série', titulo, mErr.message);
         errors.push({ titulo, stage: 'insert', message: mErr.message, code: mErr.code });
         continue;
       }
@@ -84,7 +99,7 @@ export async function seedMoviesIfEmpty() {
       movieId = created.id;
     }
 
-    // Try to seed some actors: from payload or fetch from TMDB credits
+    // Tenta adicionar alguns atores (via TMDB credits)
     let cast = Array.isArray(item?.cast) ? item.cast : (Array.isArray(item?.actors) ? item.actors : []);
     if ((!cast || cast.length === 0) && item?.id) {
       try {
@@ -119,6 +134,6 @@ export async function seedMoviesIfEmpty() {
   }
 
   const summary = { inserted, skipped, errors, note: errors.length ? 'Alguns itens falharam. Verifique policies do Supabase se inserts foram negados (RLS).' : 'Seed concluído.' };
-  console.log('[Seed] External movies seeding completed ->', summary);
+  console.log('[Seed] Importação de séries concluída ->', summary);
   return summary;
 }
