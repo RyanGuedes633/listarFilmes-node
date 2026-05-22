@@ -1,4 +1,12 @@
+import { buscarFilmes } from '../services/tmdb.js';
 import * as service from '../services/movies.js';
+
+export const listTmdb = async (_req, res, next) => {
+  try {
+    const filmes = await buscarFilmes();
+    res.json(filmes);
+  } catch (e) { next(e); }
+};
 
 export const list = async (_req, res, next) => {
   try { res.json(await service.listMovies()); } catch (e) { next(e); }

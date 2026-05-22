@@ -18,6 +18,7 @@ const updateSchema = {
 };
 
 router.get('/', controller.list);
+router.get('/tmdb/popular', controller.listTmdb);
 router.get('/:id', controller.get);
 router.post('/', validateBody(createSchema), controller.create);
 router.put('/:id', validateBody(updateSchema), controller.update);
