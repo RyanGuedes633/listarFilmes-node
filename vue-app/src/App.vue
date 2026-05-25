@@ -11,12 +11,7 @@
       </div>
     </header>
 
-    <nav style="display:flex; gap:.5rem; margin-top:.75rem;">
-      <router-link to="/" style="text-decoration:none;">Início</router-link>
-      <router-link to="/series" style="text-decoration:none;">Minhas Séries</router-link>
-      <router-link to="/criar-serie" style="text-decoration:none;">Criar Série</router-link>
-      <router-link to="/criar-ator" style="text-decoration:none;">Criar Ator</router-link>
-    </nav>
+    <NavBar />
 
     <p v-if="error" style="color:crimson; margin-top: .5rem;">{{ error }}</p>
 
@@ -26,6 +21,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import NavBar from './layouts/NavBar.vue'
 
 const API_BASE = import.meta.env.VITE_API_BASE || '/api'
 
@@ -54,9 +50,8 @@ onMounted(() => { checkHealth() })
 </script>
 
 <style scoped>
-label { display:block; margin-top:.5rem; }
-input { padding:.4rem .5rem; margin-top:.2rem; }
-button { margin-top:.4rem; padding:.35rem .6rem; }
-ul { list-style: none; padding-left: 0; }
-nav a.router-link-active { font-weight: 600; }
+  label { display:block; margin-top:.5rem; }
+  input { padding:.4rem .5rem; margin-top:.2rem; }
+  button { margin-top:.4rem; padding:.35rem .6rem; }
+  ul { list-style: none; padding-left: 0; }
 </style>
