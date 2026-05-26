@@ -10,15 +10,15 @@
         Ano: {{ props.movie.first_air_date.slice(0, 4) }}
         </p>
         
-        <p v-if="props.movie.vote_average">
+        <p v-if="props.movie.vote_average" class="movie-rating">
         Nota: {{ props.movie.vote_average.toFixed(1) }}
         </p>
 
         <p>
-        {{ movie.overview || 'Sem descrição.' }}
+        {{ props.movie.overview || 'Sem descrição.' }}
         </p>
 
-        <button @click="$emit('favorite', movie)">
+        <button @click="$emit('favorite', props.movie)">
         Favoritar
         </button> 
 
@@ -80,6 +80,17 @@ console.log(props.movie.poster_path)
 .movie-card p {
   margin: 0.25rem 0;
 }
+
+.movie-rating {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  color: #92400e;
+  font-weight: 700;
+  background-color: #fffbeb;
+  border-radius: 6px;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+}
+
 .movie-card button {
   margin-top: 0.5rem;
   padding: 0.5rem 1rem;
@@ -89,8 +100,26 @@ console.log(props.movie.poster_path)
   border-radius: 4px;
   cursor: pointer;
 }
+
 .movie-card button:disabled {
   background-color: #ccc;
+  color: #6b7280;
   cursor: not-allowed;
 }
+
+@media (max-width: 600px) {
+  .movie-card {
+    flex-direction: column;
+  }
+
+  .movie-card img {
+    width: 100%;
+    height: 260px;
+  }
+
+  .movie-card button {
+    width: 100%;
+  }
+}
+
 </style>
