@@ -12,7 +12,7 @@
       :key="serie.id" 
       :movie="serie" 
       @favorite="favorite"
-      />
+    />
 
   </section>
 </template>

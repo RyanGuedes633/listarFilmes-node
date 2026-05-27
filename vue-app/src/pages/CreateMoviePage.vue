@@ -69,3 +69,90 @@ async function createMovie() {
 
 onMounted(() => { loadActors() })
 </script>
+
+<style scoped>
+  section {
+    width: 100%;
+    margin: 0;
+    padding: 1rem;
+  }
+
+  h2 {
+    margin: .5rem 0 1rem;
+  }
+
+  p {
+    margin-bottom: 1rem;
+    color: crimson;
+  }
+
+  form {
+    max-width: 520px;
+  }
+
+  form > div {
+    margin-bottom: 1rem;
+  }
+
+  label {
+    display: block;
+    margin-bottom: .35rem;
+    font-weight: 600;
+  }
+
+  input {
+    width: 100%;
+    padding: .7rem .85rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    box-sizing: border-box;
+  }
+
+  div[style*="display:flex; flex-wrap:wrap; gap:.4rem;"] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+
+  div[style*="border:1px solid #ddd"] {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .25rem .5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+  }
+
+  div[style*="display:flex; gap:.5rem; align-items:center;"] {
+    display: flex;
+    gap: .5rem;
+    align-items: center;
+  }
+
+  button {
+    padding: .7rem 1rem;
+    border: 0;
+    border-radius: 8px;
+    background: #2563eb;
+    color: white;
+    cursor: pointer;
+  }
+
+  a {
+    color: #2563eb;
+    text-decoration: none;
+  }
+
+  @media (max-width: 640px) {
+    div[style*="display:flex; gap:.5rem; align-items:center;"] {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    button,
+    a {
+      width: 100%;
+      text-align: center;
+    }
+  }
+</style>
