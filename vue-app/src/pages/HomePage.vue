@@ -7,33 +7,22 @@
     <p v-if="loading">Carregando séries populares...</p>
     <p v-if="error" style="color:crimson;">{{ error }}</p>
 
-    <ul v-if="series.length">
-      <li v-for="s in series" :key="s.id" style="margin:.5rem 0; padding:.5rem; border:1px solid #eee; border-radius:6px; display:flex; gap:.75rem; align-items:flex-start;">
-        <div style="flex:1;">
-          <strong>{{ s.name || s.title }}</strong>
-          <div style="opacity:.8; font-size:.9em;">
-            <span v-if="s.first_air_date">{{ (s.first_air_date||'').slice(0,4) }}</span>
-            <span v-if="s.vote_average"> • Nota {{ s.vote_average?.toFixed ? s.vote_average.toFixed(1) : s.vote_average }}</span>
-          </div>
-          <div style="opacity:.85; margin-top:.25rem;">
-            {{ s.overview || 'Sem descrição.' }}
-          </div>
-        </div>
-        <div style="display:flex; flex-direction:column; gap:.35rem; min-width: 160px;">
-          <button @click="favorite(s)" :disabled="savingIds.has(s.id) || doneIds.has(s.id)" :style="btnStyle(doneIds.has(s.id))">{{ doneIds.has(s.id) ? 'Favoritado!' : (savingIds.has(s.id) ? 'Salvando...' : 'Favoritar') }}</button>
-        </div>
-      </li>
-    </ul>
-
-    <p v-else-if="!loading">Nada para mostrar.</p>
+   <MovieCard 
+      v-for="serie in series" 
+      :key="serie.id" 
+      :movie="serie" 
+      @favorite="favorite"
+      />
 
   </section>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import MovieCard from '../components/MovieCard.vue'
 
 const API_BASE = import.meta.env.VITE_API_BASE || '/api'
+
 const series = ref([])
 const loading = ref(false)
 const error = ref('')
