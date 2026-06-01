@@ -9,6 +9,10 @@
         <p v-if="props.movie.first_air_date">
         Ano: {{ props.movie.first_air_date.slice(0, 4) }}
         </p>
+
+        <p v-if="props.movie.faixaEtaria !== null && props.movie.faixaEtaria !== undefined":class="['movie-age-rating', ageRatingClass]">
+        Classificação: {{ props.movie.faixaEtaria === 0 ? 'Livre' : props.movie.faixaEtaria + '+' }}
+        </p>
         
         <p v-if="props.movie.vote_average" class="movie-rating">
         Nota: {{ props.movie.vote_average.toFixed(1) }}
@@ -34,6 +38,18 @@ const props = defineProps({
     type: Object,
     required: true
   }
+})
+
+const ageRatingClass = computed(() => {
+  const faixaEtaria = Number(props.movie.faixaEtaria)
+
+  if (faixaEtaria === 0) return 'age-free'
+  if (faixaEtaria <= 10) return 'age-10'
+  if (faixaEtaria <= 12) return 'age-12'
+  if (faixaEtaria <= 14) return 'age-14'
+  if (faixaEtaria <= 16) return 'age-16'
+
+  return 'age-18'
 })
 
 defineEmits(['favorite'])
