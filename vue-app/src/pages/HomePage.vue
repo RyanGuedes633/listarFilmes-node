@@ -6,9 +6,9 @@
     </div>
     <p v-if="loading">Carregando séries populares...</p>
     <p v-if="error" style="color:crimson;">{{ error }}</p>
-
+   <SearchBar @buscar="v => busca = v"/>
    <MovieCard 
-      v-for="serie in series" 
+      v-for="serie in seriesFiltradas"
       :key="serie.id" 
       :movie="serie" 
       @favorite="favorite"
@@ -18,8 +18,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import MovieCard from '../components/MovieCard.vue'
+import SearchBar from '../components/SearchBar.vue'
+
+const busca = ref()
+const seriesFiltradas = computed(() => {
+  if (!busca.value) return series.value
+  return series.value.filter(s =>
+      s.name?.toLowerCase().includes(busca.value.toLowerCase())
+  )
+})
 
 const API_BASE = import.meta.env.VITE_API_BASE || '/api'
 
