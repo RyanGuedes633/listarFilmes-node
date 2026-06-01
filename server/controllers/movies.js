@@ -4,7 +4,22 @@ import * as service from '../services/movies.js';
 export const listTmdb = async (_req, res, next) => {
   try {
     const filmes = await buscarFilmes();
-    res.json(filmes);
+
+    const filmesComFaixaEtaria = await Promise.all(filmes.map(async (filme) => {
+      let faixaEtaria = null;
+      try {
+        faixaEtaria = await buscarClassificacaoTv(filme.id);
+      } catch {
+        faixaEtaria = null;
+      }
+
+      return {
+        ...filme,
+        faixaEtaria
+      };
+    }));
+
+    res.json(filmesComFaixaEtaria);
   } catch (e) { next(e); }
 };
 
