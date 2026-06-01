@@ -1,33 +1,49 @@
 <template>
-    <article class="movie-card">
-    <img v-if="posterUrl" :src="posterUrl" :alt="props.movie.name || props.movie.title"/>
+   <article class="mb-4 flex items-start gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-[0_2px_8px_rgba(0,0,0,0.06)] transition duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_6px_18px_rgba(0,0,0,0.1)] max-sm:flex-col">
+    <img
+      v-if="posterUrl"
+      :src="posterUrl"
+      :alt="props.movie.name || props.movie.title"
+      class="h-40 w-[110px] flex-shrink-0 rounded-md bg-gray-100 object-cover max-sm:h-[260px] max-sm:w-full"
+    />
 
-    <div>
-        
-        <h3>{{ props.movie.name || props.movie.title }}</h3>
-        
-        <p v-if="props.movie.first_air_date">
+    <div class="min-w-0">
+      <h3 class="mb-2 text-[1.1rem] font-semibold leading-[1.3] text-gray-900">
+        {{ props.movie.name || props.movie.title }}
+      </h3>
+
+      <p v-if="props.movie.first_air_date" class="my-1 text-[0.95rem] leading-[1.4] text-gray-600">
         Ano: {{ props.movie.first_air_date.slice(0, 4) }}
-        </p>
+      </p>
 
-        <p v-if="props.movie.faixaEtaria !== null && props.movie.faixaEtaria !== undefined":class="['movie-age-rating', ageRatingClass]">
+      <div class="my-2 flex flex-wrap gap-2">
+      <p
+        v-if="props.movie.faixaEtaria !== null && props.movie.faixaEtaria !== undefined"
+          :class="['inline-block rounded-md px-2 py-1 text-sm font-bold', ageRatingClass]"
+      >
         Classificação: {{ props.movie.faixaEtaria === 0 ? 'Livre' : props.movie.faixaEtaria + '+' }}
-        </p>
-        
-        <p v-if="props.movie.vote_average" class="movie-rating">
+      </p>
+
+      <p
+        v-if="props.movie.vote_average"
+        class="inline-block rounded-md bg-[#e0c600] px-2 py-1 text-sm font-bold text-[#fefefe] shadow-[0_0_12px_rgba(245,158,11,0.25)]"
+      >
         Nota: {{ props.movie.vote_average.toFixed(1) }}
-        </p>
+      </p>
+      </div>
 
-        <p>
+      <p class="my-1 text-[0.95rem] leading-[1.4] text-gray-600">
         {{ props.movie.overview || 'Sem descrição.' }}
-        </p>
+      </p>
 
-        <button @click="$emit('favorite', props.movie)">
+      <button
+        class="mt-3 cursor-pointer rounded-md bg-blue-600 px-4 py-2 font-semibold text-white transition duration-200 ease-out hover:-translate-y-px hover:bg-blue-700 active:translate-y-0 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 max-sm:w-full"
+        @click="$emit('favorite', props.movie)"
+      >
         Favoritar
-        </button> 
-
+      </button>
     </div>
-    </article> 
+  </article>
 </template>
 
 <script setup>
@@ -43,13 +59,13 @@ const props = defineProps({
 const ageRatingClass = computed(() => {
   const faixaEtaria = Number(props.movie.faixaEtaria)
 
-  if (faixaEtaria === 0) return 'age-free'
-  if (faixaEtaria <= 10) return 'age-10'
-  if (faixaEtaria <= 12) return 'age-12'
-  if (faixaEtaria <= 14) return 'age-14'
-  if (faixaEtaria <= 16) return 'age-16'
+  if (faixaEtaria === 0) return 'bg-green-50 text-green-800 shadow-[0_0_10px_rgba(34,197,94,0.25)]'
+  if (faixaEtaria <= 10) return 'bg-blue-50 text-blue-800 shadow-[0_0_10px_rgba(59,130,246,0.25)]'
+  if (faixaEtaria <= 12) return 'bg-yellow-50 text-yellow-800 shadow-[0_0_10px_rgba(234,179,8,0.28)]'
+  if (faixaEtaria <= 14) return 'bg-orange-50 text-orange-800 shadow-[0_0_10px_rgba(249,115,22,0.25)]'
+  if (faixaEtaria <= 16) return 'bg-red-50 text-red-800 shadow-[0_0_10px_rgba(239,68,68,0.25)]'
 
-  return 'age-18'
+  return 'bg-gray-900 text-white shadow-[0_0_10px_rgba(17,24,39,0.3)]'
 })
 
 defineEmits(['favorite'])
@@ -60,82 +76,3 @@ const posterUrl = computed(() => {
 })
 console.log(props.movie.poster_path) 
 </script>
-<style scoped>
-.movie-card {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-}
-
-.movie-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-}
-
-.movie-card img {
-  width: 110px;
-  height: 160px;
-  object-fit: cover;
-  border-radius: 6px;
-  flex-shrink: 0;
-  background-color: #f3f4f6;
-}
-
-.movie-card h3 {
-  margin: 0 0 0.5rem;
-  color: #111827;
-  font-size: 1.1rem;
-  line-height: 1.3;
-}
-
-.movie-card p {
-  margin: 0.25rem 0;
-}
-
-.movie-rating {
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  color: #92400e;
-  font-weight: 700;
-  background-color: #fffbeb;
-  border-radius: 6px;
-  box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
-}
-
-.movie-card button {
-  margin-top: 0.5rem;
-  padding: 0.5rem 1rem;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.movie-card button:disabled {
-  background-color: #ccc;
-  color: #6b7280;
-  cursor: not-allowed;
-}
-
-@media (max-width: 600px) {
-  .movie-card {
-    flex-direction: column;
-  }
-
-  .movie-card img {
-    width: 100%;
-    height: 260px;
-  }
-
-  .movie-card button {
-    width: 100%;
-  }
-}
-
-</style>
