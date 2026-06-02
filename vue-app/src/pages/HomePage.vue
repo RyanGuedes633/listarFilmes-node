@@ -1,9 +1,5 @@
 <template>
   <section>
-    <h2 style="margin: .5rem 0;">Séries Populares (TMDB)</h2>
-    <div style="display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.5rem;">
-      <button @click="load" :disabled="loading">Recarregar</button>
-    </div>
     <p v-if="loading">Carregando séries populares...</p>
     <p v-if="error" style="color:crimson;">{{ error }}</p>
    <SearchBar @buscar="v => busca = v"/>

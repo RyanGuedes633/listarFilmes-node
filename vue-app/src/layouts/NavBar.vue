@@ -1,6 +1,6 @@
 <template>
     <nav style="display:flex; gap:.5rem; margin-top:.75rem;">
-      <router-link to="/" style="text-decoration:none;">Início</router-link>
+      <router-link to="/" style="text-decoration:none;">Séries Populares (TMDB)</router-link>
       <router-link to="/series" style="text-decoration:none;">Minhas Séries</router-link>
       <router-link to="/criar-serie" style="text-decoration:none;">Criar Série</router-link>
       <router-link to="/criar-ator" style="text-decoration:none;">Criar Ator</router-link>
