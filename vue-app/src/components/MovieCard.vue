@@ -37,10 +37,18 @@
       </p>
 
       <button
-        class="mt-3 cursor-pointer rounded-md bg-blue-600 px-4 py-2 font-semibold text-white transition duration-200 ease-out hover:-translate-y-px hover:bg-blue-700 active:translate-y-0 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 max-sm:w-full"
+        class="mt-3 cursor-pointer rounded-md px-4 py-2 font-semibold text-white transition-all duration-300 ease-out hover:-translate-y-px active:translate-y-0 disabled:cursor-not-allowed"
+        :class="props.favorited
+          ? 'bg-emerald-600 hover:bg-emerald-700 shadow-[0_8px_18px_rgba(16,185,129,0.2)] disabled:bg-emerald-600'
+          : 'bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500'"
+        :disabled="props.saving || props.favorited"
         @click="$emit('favorite', props.movie)"
       >
-        Favoritar
+        <transition name="favorite-label" mode="out-in">
+          <span :key="props.favorited ? 'favorited' : props.saving ? 'saving' : 'favorite'">
+            {{ props.saving ? 'Favoritando...' : props.favorited ? 'Favoritado' : 'Favoritar' }}
+          </span>
+        </transition>
       </button>
     </div>
   </article>
@@ -53,6 +61,14 @@ const props = defineProps({
   movie: {
     type: Object,
     required: true
+  },
+  favorited: {
+    type: Boolean,
+    default: false
+  },
+  saving: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -74,5 +90,23 @@ const posterUrl = computed(() => {
     if (!props.movie.poster_path) return ''
     return `https://image.tmdb.org/t/p/w300${props.movie.poster_path}`
 })
-console.log(props.movie.poster_path) 
 </script>
+
+<style scoped>
+.favorite-label-enter-active,
+.favorite-label-leave-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.favorite-label-enter-from,
+.favorite-label-leave-to {
+  opacity: 0;
+  transform: translateY(4px) scale(0.96);
+}
+
+.favorite-label-enter-to,
+.favorite-label-leave-from {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+</style>

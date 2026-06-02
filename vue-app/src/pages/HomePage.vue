@@ -11,6 +11,8 @@
       v-for="serie in seriesFiltradas"
       :key="serie.id" 
       :movie="serie" 
+    :favorited="doneTitles.has(normalizeTitle(serie))"
+    :saving="savingIds.has(serie.id)"
       @favorite="favorite"
     />
 
@@ -38,11 +40,23 @@ const error = ref('')
 
 // Controle de estado do botão Favoritar
 const savingIds = ref(new Set())
-const doneIds = ref(new Set())
+const doneTitles = ref(new Set())
+
+function normalizeTitle(item) {
+  return String(item?.name || item?.title || '').trim().toLowerCase()
+}
+
+async function loadFavorites() {
+  const res = await fetch(`${API_BASE}/movies`)
+  if (!res.ok) throw new Error('Falha ao carregar séries favoritas')
+  const movies = await res.json()
+  doneTitles.value = new Set((movies || []).map((movie) => String(movie?.titulo || '').trim().toLowerCase()).filter(Boolean))
+}
 
 async function favorite(item) {
   const id = item?.id
-  if (!id || savingIds.value.has(id) || doneIds.value.has(id)) return
+  const titleKey = normalizeTitle(item)
+  if (!id || savingIds.value.has(id) || doneTitles.value.has(titleKey)) return
   error.value = ''
   savingIds.value.add(id)
   try {
@@ -55,8 +69,8 @@ async function favorite(item) {
       const t = await res.text().catch(() => '')
       throw new Error(t || 'Falha ao favoritar série')
     }
-    // Marca como concluído
-    doneIds.value.add(id)
+    // Marca como favorito usando o título salvo no backend
+    doneTitles.value.add(titleKey)
   } catch (e) {
     error.value = e?.message || 'Erro ao favoritar'
   } finally {
@@ -68,9 +82,15 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    const res = await fetch(`${API_BASE}/movies/tmdb/popular`)
-    if (!res.ok) throw new Error('Falha ao buscar séries populares')
-    series.value = await res.json()
+    const popularRes = await fetch(`${API_BASE}/movies/tmdb/popular`)
+    if (!popularRes.ok) throw new Error('Falha ao buscar séries populares')
+    series.value = await popularRes.json()
+
+    try {
+      await loadFavorites()
+    } catch {
+      // Se a lista de favoritas falhar, a página continua carregando normalmente.
+    }
   } catch (e) {
     error.value = e?.message || 'Erro ao carregar'
   } finally {
