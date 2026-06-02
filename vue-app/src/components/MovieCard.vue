@@ -1,5 +1,9 @@
 <template>
-   <article class="mb-4 flex items-start gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-[0_2px_8px_rgba(0,0,0,0.06)] transition duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_6px_18px_rgba(0,0,0,0.1)] max-sm:flex-col">
+  <article
+   class="mb-4 flex items-start gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-[0_2px_8px_rgba(0,0,0,0.06)] transition duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_6px_18px_rgba(0,0,0,0.1)] max-sm:flex-col cursor-pointer"
+   @click="openDetails"
+   title="Ver detalhes"
+  >
     <img
       v-if="posterUrl"
       :src="posterUrl"
@@ -42,7 +46,7 @@
           ? 'bg-emerald-600 hover:bg-emerald-700 shadow-[0_8px_18px_rgba(16,185,129,0.2)] disabled:bg-emerald-600'
           : 'bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500'"
         :disabled="props.saving || props.favorited"
-        @click="$emit('favorite', props.movie)"
+        @click.stop="$emit('favorite', props.movie)"
       >
         <transition name="favorite-label" mode="out-in">
           <span :key="props.favorited ? 'favorited' : props.saving ? 'saving' : 'favorite'">
@@ -56,6 +60,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 
 const props = defineProps({
   movie: {
@@ -84,12 +89,18 @@ const ageRatingClass = computed(() => {
   return 'bg-gray-900 text-white shadow-[0_0_10px_rgba(17,24,39,0.3)]'
 })
 
+const router = useRouter()
+
 defineEmits(['favorite'])
 
 const posterUrl = computed(() => {
     if (!props.movie.poster_path) return ''
     return `https://image.tmdb.org/t/p/w300${props.movie.poster_path}`
 })
+
+function openDetails() {
+  router.push(`/serie/${props.movie.id}`)
+}
 </script>
 
 <style scoped>
