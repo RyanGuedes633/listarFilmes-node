@@ -39,7 +39,10 @@
         <template v-else>
           <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem;">
             <div>
-              <strong>{{ m.titulo }}</strong>
+              <router-link v-if="m.tmdbId" :to="`/serie/${m.tmdbId}`" style="text-decoration: none; color: inherit;">
+                <strong style="cursor: pointer; text-decoration: underline;">{{ m.titulo }}</strong>
+              </router-link>
+              <strong v-else>{{ m.titulo }}</strong>
               <small style="opacity:.7"> • {{ m.genero }} • {{ m.faixaEtaria }}+</small>
               <div v-if="m.atoresDetalhes?.length" style="font-size:.9em; opacity:.85">Atores: {{ m.atoresDetalhes.map(a=>a.nome).join(', ') }}</div>
             </div>

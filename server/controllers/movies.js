@@ -27,6 +27,7 @@ export const favoriteFromTmdb = async (req, res, next) => {
   try {
     const body = req.body || {};
     const titulo = body?.name || body?.title || 'Sem título';
+    const tmdbId = body?.id;
     let genero = 'Desconhecido';
     try {
       const map = await buscarGenerosTv();
@@ -41,7 +42,7 @@ export const favoriteFromTmdb = async (req, res, next) => {
       faixaEtaria = await buscarClassificacaoTv(body?.id);
     } catch { faixaEtaria = null; }
     if (faixaEtaria == null) faixaEtaria = 10;
-    const movie = await service.ensureMovieByTitulo(titulo, genero, faixaEtaria);
+    const movie = await service.ensureMovieByTitulo(titulo, genero, faixaEtaria, tmdbId);
     res.status(201).json(movie);
   } catch (e) { next(e); }
 };

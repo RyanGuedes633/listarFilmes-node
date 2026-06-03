@@ -6,7 +6,6 @@ import actorsRouter from './routes/actors.js';
 import { notFound, errorHandler } from './middlewares/error.js';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
-import { seedMoviesIfEmpty } from './startup/seed.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;

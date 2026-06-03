@@ -25,6 +25,7 @@ export async function listMovies() {
   });
   return (movies || []).map((m) => ({
     id: m.id,
+    tmdbId: m.tmdb_id,
     titulo: m.titulo,
     faixaEtaria: m.faixaEtaria,
     genero: m.genero,
@@ -46,7 +47,7 @@ export async function getMovieById(id) {
     if (aErr) throw new HttpError(500, 'Erro ao carregar atores', aErr);
     atoresDetalhes = actors || [];
   }
-  return { id: movie.id, titulo: movie.titulo, faixaEtaria: movie.faixaEtaria, genero: movie.genero, atores: actorIds, atoresDetalhes };
+  return { id: movie.id, tmdbId: movie.tmdb_id, titulo: movie.titulo, faixaEtaria: movie.faixaEtaria, genero: movie.genero, atores: actorIds, atoresDetalhes };
 }
 
 export async function createMovie({ titulo, faixaEtaria, genero, atores }) {
@@ -95,7 +96,7 @@ export async function deleteMovie(id) {
 }
 
 // Garante que uma série exista pelo título (case-insensitive). Se não existir, cria.
-export async function ensureMovieByTitulo(titulo, genero, faixaEtaria) {
+export async function ensureMovieByTitulo(titulo, genero, faixaEtaria, tmdbId) {
   if (!titulo) throw new HttpError(400, 'Título é obrigatório');
   const { data: exists, error: eErr } = await supabase
     .from('movies')
@@ -104,12 +105,12 @@ export async function ensureMovieByTitulo(titulo, genero, faixaEtaria) {
     .maybeSingle();
   if (eErr && eErr.code !== 'PGRST116') throw new HttpError(500, 'Erro ao verificar série existente', eErr);
   if (exists) {
-    // Opcionalmente poderíamos atualizar genero/faixaEtaria se vierem diferentes
+    // Opcionalmente poderíamos atualizar genero/faixaEtaria/tmdbId se vierem diferentes
     return await getMovieById(exists.id);
   }
   const { data: created, error: cErr } = await supabase
     .from('movies')
-    .insert([{ titulo, genero, faixaEtaria }])
+    .insert([{ titulo, genero, faixaEtaria, tmdb_id: tmdbId }])
     .select('*')
     .single();
   if (cErr) throw new HttpError(500, 'Erro ao criar série favorita', cErr);
