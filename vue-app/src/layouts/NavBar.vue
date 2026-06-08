@@ -1,5 +1,5 @@
 <template>
-    <nav style="display:flex; gap:.5rem; margin-top:.75rem;">
+    <nav>
       <router-link to="/" style="text-decoration:none;">Séries Populares (TMDB)</router-link>
       <router-link to="/series" style="text-decoration:none;">Minhas Séries</router-link>
       <router-link to="/criar-serie" style="text-decoration:none;">Criar Série</router-link>
@@ -37,6 +37,20 @@
         padding: .35rem .6rem;
         border-radius: .4rem;
         transition: background .2s ease, color .2s ease;
+        white-space: nowrap;
+    }
+
+    @media (max-width: 600px) {
+        nav {
+            gap: .4rem;
+            padding: .75rem;
+            overflow-x: auto;
+        }
+
+        nav a {
+            font-size: .9rem;
+            padding: .3rem .45rem;
+        }
     }
 
     nav a:hover {
