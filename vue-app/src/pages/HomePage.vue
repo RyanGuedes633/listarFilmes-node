@@ -2,7 +2,7 @@
   <section>
     <p v-if="loading">Carregando séries populares...</p>
     <p v-if="error" style="color:crimson;">{{ error }}</p>
-   <SearchBar @buscar="v => busca = v"/>
+    <SearchBar @buscar="(v, m) => { busca = v; modoBusca = m }" />
    <MovieCard 
       v-for="serie in seriesFiltradas"
       :key="serie.id" 
@@ -20,11 +20,23 @@ import { ref, onMounted, computed } from 'vue'
 import MovieCard from '../components/MovieCard.vue'
 import SearchBar from '../components/SearchBar.vue'
 
-const busca = ref()
+const busca = ref('')
+const modoBusca = ref('series') // 'series' | 'atores'
+
 const seriesFiltradas = computed(() => {
   if (!busca.value) return series.value
+
+  if (modoBusca.value === 'series') {
+    return series.value.filter(s =>
+        s.name?.toLowerCase().includes(busca.value.toLowerCase())
+    )
+  }
+
+  // busca por ator: filtra séries que têm o ator no elenco
   return series.value.filter(s =>
-      s.name?.toLowerCase().includes(busca.value.toLowerCase())
+      s.cast?.some(ator =>
+          ator.toLowerCase().includes(busca.value.toLowerCase())
+      )
   )
 })
 

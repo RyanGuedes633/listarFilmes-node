@@ -1,4 +1,4 @@
-import { buscarFilmes, buscarGenerosTv, buscarClassificacaoTv } from '../services/tmdb.js';
+import { buscarFilmes, buscarGenerosTv, buscarClassificacaoTv, buscarElenco } from '../services/tmdb.js';
 import * as service from '../services/movies.js';
 
 export const listTmdb = async (_req, res, next) => {
@@ -7,15 +7,24 @@ export const listTmdb = async (_req, res, next) => {
 
     const filmesComFaixaEtaria = await Promise.all(filmes.map(async (filme) => {
       let faixaEtaria = null;
+      let cast = [];
+
       try {
         faixaEtaria = await buscarClassificacaoTv(filme.id);
       } catch {
         faixaEtaria = null;
       }
 
+      try {                              // <-- adicionar isso
+        cast = await buscarElenco(filme.id);
+      } catch {
+        cast = [];
+      }
+
       return {
         ...filme,
-        faixaEtaria
+        faixaEtaria,
+        cast,                            // <-- e isso
       };
     }));
 

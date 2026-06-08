@@ -34,6 +34,11 @@
       >
         Nota: {{ props.movie.vote_average.toFixed(1) }}
       </p>
+
+        <p v-if="props.movie.cast?.length" style="font-size: 0.85rem; color: #6b7280;">
+          {{ props.movie.cast.slice(0, 5).join(', ') }}
+        </p>
+
       </div>
 
       <p class="my-1 text-[0.95rem] leading-[1.4] text-gray-600">
