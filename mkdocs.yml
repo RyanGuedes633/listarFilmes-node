@@ -1,0 +1,19 @@
+site_name: Lista de Filmes
+site_description: Plataforma de catalogação de filmes e gerenciamento de elenco
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: blue
+    accent: cyan
+nav:
+  - Home: index.md
+  - Guia de Início Rápido: getting-started.md
+  - API:
+      - Visão Geral: api/overview.md
+      - Autenticação: api/auth.md
+      - Filmes: api/movies.md
+      - Atores: api/actors.md
+  - Frontend: frontend/overview.md
+  - Modelo de Dados: architecture/data-model.md
+  - Deployment: deployment.md
