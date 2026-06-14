@@ -1,23 +1,29 @@
 <template>
-  <main style="font-family: system-ui, sans-serif; padding: 1rem; max-width: 960px; margin: 0 auto;">
-    <header style="display:flex; align-items:center; gap:1rem; justify-content:space-between;">
-      <div>
-        <h1 style="margin:0;">Vue - Lista de Séries</h1>
-        <small style="opacity:.75">API: <code>{{ API_BASE }}</code> • <a href="/api/docs" target="_blank">Swagger</a></small>
-      </div>
-      <div>
-        <button @click="checkHealth" :disabled="healthLoading">Health</button>
-        <span v-if="health">Status: <strong :style="{color: health.status==='ok'?'green':'crimson'}">{{ health.status }}</strong></span>
-      </div>
-    </header>
+  <main class="relative w-[min(1440px,100vw)] max-w-[1440px] mx-auto p-4 font-sans">
 
     <NavBar />
 
-    <p v-if="error" style="color:crimson; margin-top: .5rem;">{{ error }}</p>
+    <div class="app-content pt-[64px] max-[600px]:pt-[76px] min-[981px]:pt-4 min-[981px]:pl-[260px]">
+      <header class="flex items-center justify-between gap-4">
+        <div>
+          <h1 class="m-0">Vue - Lista de Séries</h1>
+          <small class="opacity-75">API: <code>{{ API_BASE }}</code> • <a href="/api/docs" target="_blank">Swagger</a></small>
+        </div>
+        <div>
+          <button @click="checkHealth" :disabled="healthLoading">Health</button>
+          <span v-if="health">Status: <strong :style="{color: health.status==='ok'?'green':'crimson'}">{{ health.status }}</strong></span>
+        </div>
+      </header>
 
-    <router-view style="display:block; margin-top:1rem;" />
+      <div class="mt-4">
+        <p v-if="error" class="mt-2 text-crimson">{{ error }}</p>
+        <router-view class="mt-4 block" />
+      </div>
+    </div>
+
   </main>
 </template>
+
 
 <script setup>
 import { ref, onMounted } from 'vue'
@@ -48,10 +54,3 @@ async function checkHealth() {
 
 onMounted(() => { checkHealth() })
 </script>
-
-<style scoped>
-  label { display:block; margin-top:.5rem; }
-  input { padding:.4rem .5rem; margin-top:.2rem; }
-  button { margin-top:.4rem; padding:.35rem .6rem; }
-  ul { list-style: none; padding-left: 0; }
-</style>
