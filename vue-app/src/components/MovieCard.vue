@@ -1,9 +1,38 @@
 <template>
   <article
-   class="mb-4 flex items-start gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-[0_2px_8px_rgba(0,0,0,0.06)] transition duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_6px_18px_rgba(0,0,0,0.1)] max-sm:flex-col cursor-pointer"
+   :class="[
+     'relative mb-4 flex items-start gap-4 rounded-lg border bg-white p-4 transition duration-200 ease-out hover:-translate-y-0.5 max-sm:flex-col cursor-pointer',
+     'border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_6px_18px_rgba(0,0,0,0.1)]'
+   ]"
    @click="openDetails"
    title="Ver detalhes"
   >
+    <!-- Botão/Chip de favorito sempre visível -->
+    <button
+      type="button"
+      :class="[
+        'absolute right-2 top-2 z-10 flex items-center gap-1 rounded-full px-2 py-1 text-[0.72rem] font-medium shadow-sm ring-1 transition-all duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-70',
+        props.favorited
+          ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
+          : 'bg-white/95 text-rose-600 ring-rose-200/70 hover:bg-white'
+      ]"
+      :disabled="props.saving || props.favorited"
+      :aria-disabled="props.saving || props.favorited"
+      :title="props.favorited ? 'Favorito' : (props.saving ? 'Favoritando...' : 'Clique para favoritar')"
+      @click.stop="$emit('favorite', props.movie)"
+    >
+      <!-- Ícone coração: contorno quando não favorito, preenchido quando favorito -->
+      <svg v-if="!props.favorited" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-3.5 w-3.5">
+        <path d="M12.1 20.3c-.1.1-.2.1-.3 0C7 16.3 4 13.7 4 10.5 4 8 6 6 8.5 6c1.3 0 2.6.6 3.5 1.7C13 6.6 14.3 6 15.5 6 18 6 20 8 20 10.5c0 3.2-3 5.8-7.9 9.8z"/>
+      </svg>
+      <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-3.5 w-3.5 text-emerald-600" fill="currentColor">
+        <path d="M12.1 20.3c-.1.1-.2.1-.3 0C7 16.3 4 13.7 4 10.5 4 8 6 6 8.5 6c1.3 0 2.6.6 3.5 1.7C13 6.6 14.3 6 15.5 6 18 6 20 8 20 10.5c0 3.2-3 5.8-7.9 9.8z"/>
+      </svg>
+      <span class="leading-none">
+        {{ props.saving ? 'Favoritando...' : props.favorited ? 'Favorito' : 'Favoritar' }}
+      </span>
+    </button>
+
     <img
       v-if="posterUrl"
       :src="posterUrl"
@@ -19,7 +48,6 @@
       <p v-if="props.movie.first_air_date" class="my-1 text-[0.95rem] leading-[1.4] text-gray-600">
         Ano: {{ props.movie.first_air_date.slice(0, 4) }}
       </p>
-
       <div class="my-2 flex flex-wrap gap-2">
       <p
         v-if="props.movie.faixaEtaria !== null && props.movie.faixaEtaria !== undefined"
@@ -34,31 +62,16 @@
       >
         Nota: {{ props.movie.vote_average.toFixed(1) }}
       </p>
-
-        <p v-if="props.movie.cast?.length" style="font-size: 0.85rem; color: #6b7280;">
-          {{ props.movie.cast.slice(0, 5).join(', ') }}
-        </p>
-
       </div>
+
+      <p v-if="props.movie.cast?.length" class="mt-1 text-[0.85rem] text-gray-500">
+        {{ props.movie.cast.slice(0, 5).join(', ') }}
+      </p>
 
       <p class="my-1 text-[0.95rem] leading-[1.4] text-gray-600">
         {{ props.movie.overview || 'Sem descrição.' }}
       </p>
 
-      <button
-        class="mt-3 cursor-pointer rounded-md px-4 py-2 font-semibold text-white transition-all duration-300 ease-out hover:-translate-y-px active:translate-y-0 disabled:cursor-not-allowed"
-        :class="props.favorited
-          ? 'bg-emerald-600 hover:bg-emerald-700 shadow-[0_8px_18px_rgba(16,185,129,0.2)] disabled:bg-emerald-600'
-          : 'bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500'"
-        :disabled="props.saving || props.favorited"
-        @click.stop="$emit('favorite', props.movie)"
-      >
-        <transition name="favorite-label" mode="out-in">
-          <span :key="props.favorited ? 'favorited' : props.saving ? 'saving' : 'favorite'">
-            {{ props.saving ? 'Favoritando...' : props.favorited ? 'Favoritado' : 'Favoritar' }}
-          </span>
-        </transition>
-      </button>
     </div>
   </article>
 </template>
@@ -93,7 +106,6 @@ const ageRatingClass = computed(() => {
 
   return 'bg-gray-900 text-white shadow-[0_0_10px_rgba(17,24,39,0.3)]'
 })
-
 const router = useRouter()
 
 defineEmits(['favorite'])

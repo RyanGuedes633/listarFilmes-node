@@ -4,36 +4,37 @@
     <p v-else-if="error" class="text-[crimson]">{{ error }}</p>
 
     <div v-else-if="actor">
-      <div class="flex flex-col gap-4 md:flex-row md:items-start">
+      <div class="flex flex-col gap-4 md:flex-row md:items-center">
         <img
           v-if="actor.foto"
           :src="actor.foto"
           :alt="actor.nome"
-          class="w-60 shrink-0 rounded-lg object-cover bg-[#f3f4f6]"
+          class="w-70 shrink-0 rounded-xl object-cover md:w-70 bg-[#f3f4f6]"
         />
 
-        <div class="flex-1 max-w-175">
+        <div class="flex-1 max-w-175 text-center md:text-left">
           <h2 class="mb-2 text-2xl font-bold">{{ actor.nome }}</h2>
           <p>Sexo: {{ actor.sexo }}</p>
           <p>Idade: {{ actor.idade }}</p>
-          <p v-if="actor.nascimento">Nascimento: {{ actor.nascimento }}</p>
+          <p v-if="actor.nascimento">Nascimento: {{ formatDateBR(actor.nascimento) }}</p>
           <p v-if="actor.popularidade">Popularidade: {{ actor.popularidade }}</p>
-          <p class="mt-3">{{ actor.biografia || 'Sem biografia disponível.' }}</p>
-
-          <router-link to="/" class="mt-4 inline-block text-blue-600 hover:underline">Voltar</router-link>
+          <p class="my-3 leading-6">{{ actor.biografia || 'Sem biografia disponível.' }}</p>
         </div>
       </div>
 
       <div class="mt-6">
-        <h3 class="mb-2 text-lg font-bold">Filmes</h3>
-        <ul class="list-disc pl-5">
-          <li v-for="m in filmes" :key="m.id">
-            <span>{{ m.titulo }}</span>
-            <span v-if="m.ano"> ({{ m.ano }})</span>
-            <span v-if="m.papel"> — {{ m.papel }}</span>
-          </li>
-        </ul>
-        <p v-if="!filmes.length" class="text-[#4b5563]">Nenhum filme encontrado.</p>
+        <h3 class="mb-3 text-lg font-bold">Séries</h3>
+        <div class="grid grid-cols-1 gap-3">
+          <MovieCard
+            v-for="serie in filmes"
+            :key="serie.id"
+            :movie="serie"
+            :favorited="doneTitles.has(normalizeTitle(serie))"
+            :saving="savingIds.has(serie.id)"
+            @favorite="favorite"
+          />
+        </div>
+        <p v-if="!filmes.length" class="text-[#4b5563]">Nenhuma série encontrada.</p>
       </div>
     </div>
   </section>
@@ -42,14 +43,58 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import MovieCard from '../components/MovieCard.vue'
 
 const route = useRoute()
 const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
-
 const loading = ref(false)
 const error = ref('')
 const actor = ref(null)
 const filmes = ref([])
+
+// Favoritos (mesma lógica da HomePage)
+const API_BASE = import.meta.env.VITE_API_BASE || '/api'
+const savingIds = ref(new Set())
+const doneTitles = ref(new Set())
+
+function normalizeTitle(item) {
+  return String(item?.name || item?.title || '').trim().toLowerCase()
+}
+
+async function loadFavorites() {
+  try {
+    const res = await fetch(`${API_BASE}/movies`)
+    if (!res.ok) return
+    const movies = await res.json()
+    doneTitles.value = new Set((movies || [])
+      .map(m => String(m?.titulo || '').trim().toLowerCase())
+      .filter(Boolean))
+  } catch {}
+}
+
+async function favorite(item) {
+  const id = item?.id
+  const titleKey = normalizeTitle(item)
+  if (!id || savingIds.value.has(id) || doneTitles.value.has(titleKey)) return
+  error.value = ''
+  savingIds.value.add(id)
+  try {
+    const res = await fetch(`${API_BASE}/movies/tmdb/favorite`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item),
+    })
+    if (!res.ok) {
+      const t = await res.text().catch(() => '')
+      throw new Error(t || 'Falha ao favoritar série')
+    }
+    doneTitles.value.add(titleKey)
+  } catch (e) {
+    error.value = e?.message || 'Erro ao favoritar'
+  } finally {
+    savingIds.value.delete(id)
+  }
+}
 
 onMounted(loadActor)
 
@@ -69,8 +114,8 @@ async function loadActor() {
     const infoRes = await fetch(`https://api.themoviedb.org/3/person/${id}?api_key=${TMDB_KEY}&language=pt-BR`)
     const info = await infoRes.json()
 
-    // Créditos de filmes do ator
-    const creditsRes = await fetch(`https://api.themoviedb.org/3/person/${id}/movie_credits?api_key=${TMDB_KEY}&language=pt-BR`)
+    // Créditos de séries de TV do ator
+    const creditsRes = await fetch(`https://api.themoviedb.org/3/person/${id}/tv_credits?api_key=${TMDB_KEY}&language=pt-BR`)
     const credits = await creditsRes.json()
 
     actor.value = {
@@ -84,16 +129,25 @@ async function loadActor() {
       biografia: info?.biography || ''
     }
 
-    const movieCast = Array.isArray(credits?.cast) ? credits.cast : []
-    filmes.value = movieCast
+    const tvCast = Array.isArray(credits?.cast) ? credits.cast : []
+    filmes.value = tvCast
       .sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0))
       .slice(0, 20)
-      .map(m => ({
-        id: m.id,
-        titulo: m.title || m.original_title || 'Sem título',
-        ano: m.release_date ? m.release_date.slice(0, 4) : '',
-        papel: m.character || ''
+      .map(s => ({
+        // Mapeia no formato que o MovieCard espera (itens de série da TMDB)
+        id: s.id,
+        name: s.name || s.original_name || 'Sem título',
+        first_air_date: s.first_air_date || '',
+        vote_average: typeof s.vote_average === 'number' ? s.vote_average : Number(s.vote_average || 0),
+        overview: s.overview || '',
+        poster_path: s.poster_path || '',
+        // campos opcionais que o MovieCard ignora se ausentes
+        faixaEtaria: null,
+        cast: []
       }))
+
+    // Após carregar séries, carrega favoritos para marcar já favoritados
+    await loadFavorites()
   } catch (e) {
     error.value = e?.message || 'Erro ao carregar ator'
   } finally {
@@ -114,5 +168,20 @@ function calcularIdade(birthDate) {
   }
 
   return idade >= 0 ? String(idade) : 'Não informado'
+}
+
+function formatDateBR(dateStr) {
+  if (!dateStr) return ''
+  const parts = String(dateStr).split('-')
+  if (parts.length === 3) {
+    const [y, m, d] = parts
+    return `${String(d).padStart(2, '0')}-${String(m).padStart(2, '0')}-${y}`
+  }
+  const dt = new Date(dateStr)
+  if (Number.isNaN(dt.getTime())) return String(dateStr)
+  const dd = String(dt.getDate()).padStart(2, '0')
+  const mm = String(dt.getMonth() + 1).padStart(2, '0')
+  const yyyy = dt.getFullYear()
+  return `${dd}-${mm}-${yyyy}`
 }
 </script>
