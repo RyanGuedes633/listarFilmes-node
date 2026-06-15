@@ -14,12 +14,23 @@ export async function getActorById(id) {
   return data;
 }
 
-export async function createActor({ nome }) {
-  // Unique by nome
-  const { data: exists, error: e1 } = await supabase.from('actors').select('id').ilike('nome', nome).maybeSingle();
-  if (e1 && e1.code !== 'PGRST116') throw new HttpError(500, 'Erro ao verificar ator', e1);
-  if (exists) throw new HttpError(409, 'Ator já existe');
-  const { data, error } = await supabase.from('actors').insert([{ nome }]).select('*').single();
+export async function createActor({ nome, tmdb_id }) {
+  // Evita duplicado pelo id da TMDB, que é mais confiável que o nome
+  if (tmdb_id != null) {
+    const { data: exists, error: e1 } = await supabase
+        .from('actors')
+        .select('id')
+        .eq('tmdb_id', tmdb_id)
+        .maybeSingle();
+    if (e1 && e1.code !== 'PGRST116') throw new HttpError(500, 'Erro ao verificar ator', e1);
+    if (exists) throw new HttpError(409, 'Ator já existe');
+  } else {
+    const { data: exists, error: e1 } = await supabase.from('actors').select('id').ilike('nome', nome).maybeSingle();
+    if (e1 && e1.code !== 'PGRST116') throw new HttpError(500, 'Erro ao verificar ator', e1);
+    if (exists) throw new HttpError(409, 'Ator já existe');
+  }
+
+  const { data, error } = await supabase.from('actors').insert([{ nome, tmdb_id }]).select('*').single();
   if (error) throw new HttpError(500, 'Erro ao criar ator', error);
   return data;
 }

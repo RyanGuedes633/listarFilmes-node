@@ -5,14 +5,7 @@
 
     <div class="app-content pt-[64px] max-[600px]:pt-[76px] min-[981px]:pt-4 min-[981px]:pl-[260px]">
       <header class="flex items-center justify-between gap-4">
-        <div>
-          <h1 class="m-0">Vue - Lista de Séries</h1>
-          <small class="opacity-75">API: <code>{{ API_BASE }}</code> • <a href="/api/docs" target="_blank">Swagger</a></small>
-        </div>
-        <div>
-          <button @click="checkHealth" :disabled="healthLoading">Health</button>
-          <span v-if="health">Status: <strong :style="{color: health.status==='ok'?'green':'crimson'}">{{ health.status }}</strong></span>
-        </div>
+
       </header>
 
       <div class="mt-4">

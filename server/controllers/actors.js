@@ -33,3 +33,16 @@ export const remove = async (req, res, next) => {
     res.json(removed);
   } catch (e) { next(e); }
 };
+export const favoriteFromTmdb = async (req, res, next) => {
+  try {
+    const nome = req.body?.nome || req.body?.name;
+    const tmdb_id = req.body?.id ?? req.body?.tmdb_id ?? null;
+
+    if (!nome || typeof nome !== 'string') {
+      return res.status(400).json({ message: 'Nome do ator é obrigatório' });
+    }
+
+    const actor = await service.createActor({ nome, tmdb_id });
+    res.status(201).json(actor);
+  } catch (e) { next(e); }
+};

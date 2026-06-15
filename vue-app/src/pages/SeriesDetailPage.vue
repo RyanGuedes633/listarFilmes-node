@@ -6,10 +6,10 @@
     <div v-else-if="details">
       <div class="flex flex-col gap-4 md:flex-row md:items-center">
         <img
-          v-if="details.poster"
-          :src="details.poster"
-          :alt="details.title"
-          class="w-70 shrink-0 rounded-xl object-cover md:w-70"
+            v-if="details.poster"
+            :src="details.poster"
+            :alt="details.title"
+            class="w-70 shrink-0 rounded-xl object-cover md:w-70"
         />
 
         <div class="flex-1 max-w-175 text-center md:text-left">
@@ -22,8 +22,16 @@
       </div>
 
       <h3 class="mt-4 mb-2 text-lg font-bold">Atores</h3>
+      <p v-if="favoriteError" class="text-[0.85rem] text-[crimson]">{{ favoriteError }}</p>
       <div class="flex flex-wrap gap-3">
-        <ActorCard v-for="actor in details.cast" :key="actor.id" :actor="actor" />
+        <ActorCard
+            v-for="actor in details.cast"
+            :key="actor.id"
+            :actor="actor"
+            :favorited="favoritedActorIds.has(actor.id)"
+            :saving="savingActorIds.has(actor.id)"
+            @favorite="favoritarAtor"
+        />
       </div>
     </div>
   </section>
@@ -36,9 +44,16 @@ import ActorCard from '../components/ActorCard.vue'
 
 const route = useRoute()
 const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
+const API_BASE = import.meta.env.VITE_API_BASE || '/api'
+
 const loading = ref(false)
 const error = ref('')
 const details = ref(null)
+
+// Favoritar atores
+const favoritedActorIds = ref(new Set())
+const savingActorIds = ref(new Set())
+const favoriteError = ref('')
 
 async function loadDetails() {
   if (!TMDB_KEY) {
@@ -64,7 +79,7 @@ async function loadDetails() {
 
     const castWithDetails = await Promise.all(cast.map(async (actor) => {
       const actorRes = await fetch(
-        'https://api.themoviedb.org/3/person/' + actor.id + '?api_key=' + TMDB_KEY + '&language=pt-BR'
+          'https://api.themoviedb.org/3/person/' + actor.id + '?api_key=' + TMDB_KEY + '&language=pt-BR'
       )
       const actorData = await actorRes.json()
 
@@ -93,6 +108,39 @@ async function loadDetails() {
   }
 }
 
+async function loadFavoritedActors() {
+  try {
+    const res = await fetch(`${API_BASE}/actors`)
+    if (!res.ok) return
+    const actors = await res.json()
+    favoritedActorIds.value = new Set(
+        (actors || []).map(a => a?.tmdb_id).filter(id => id != null)
+    )
+  } catch {}
+}
+
+async function favoritarAtor(actor) {
+  if (!actor?.id || savingActorIds.value.has(actor.id) || favoritedActorIds.value.has(actor.id)) return
+  favoriteError.value = ''
+  savingActorIds.value.add(actor.id)
+  try {
+    const res = await fetch(`${API_BASE}/actors/tmdb/favorite`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(actor),
+    })
+    if (!res.ok) {
+      const t = await res.text().catch(() => '')
+      throw new Error(t || 'Falha ao favoritar ator')
+    }
+    favoritedActorIds.value.add(actor.id)
+  } catch (e) {
+    favoriteError.value = e?.message || 'Erro ao favoritar ator'
+  } finally {
+    savingActorIds.value.delete(actor.id)
+  }
+}
+
 function calcularIdade(birthDate) {
   const nascimento = new Date(birthDate)
   if (Number.isNaN(nascimento.getTime())) return 'Não informado'
@@ -108,5 +156,8 @@ function calcularIdade(birthDate) {
   return idade >= 0 ? String(idade) : 'Não informado'
 }
 
-onMounted(loadDetails)
+onMounted(() => {
+  loadDetails()
+  loadFavoritedActors()
+})
 </script>
