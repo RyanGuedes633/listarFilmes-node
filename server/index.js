@@ -114,3 +114,5 @@ app.listen(PORT, async () => {
     console.warn('[Seed] Startup seeding failed:', e?.message);
   }
 });
+
+export default app;
