@@ -1,5 +1,5 @@
 <template>
-  <main class="relative w-[min(1440px,100vw)] max-w-[1440px] mx-auto p-4 font-sans" :class="{ 'conteudo-bloqueado': !isLoggedIn }">
+  <main class="relative w-[min(1440px,100vw)] max-w-[1440px] mx-auto p-4 font-sans">
 
     <NavBar />
 
@@ -15,25 +15,14 @@
     </div>
 
   </main>
-
-  <LoginOverlay
-    v-if="!isLoggedIn"
-    @login-success="handleLogin"
-  />
 </template>
 
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import NavBar from './layouts/NavBar.vue'
-import LoginOverlay from './components/loginOverlay.vue'
+
 const API_BASE = import.meta.env.VITE_API_BASE || '/api'
-
-const isLoggedIn = ref(false)
-
-function handleLogin() {
-  isLoggedIn.value = true
-}
 
 // Shared state
 const error = ref('')
