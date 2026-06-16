@@ -7,7 +7,13 @@
       </div>
     </div>
 
-    <p v-if="loading" class="mt-4 text-sm text-slate-600">Carregando...</p>
+    <div v-if="loading" class="flex flex-col items-center justify-center py-12 gap-3 text-slate-500">
+      <svg class="animate-spin h-8 w-8 text-[#015C91]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <span class="text-sm font-medium">Carregando...</span>
+    </div>
     <p v-if="error" class="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ error }}</p>
 
     <div v-if="movies.length" class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 2xl:gap-5">
@@ -63,6 +69,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import SerieFavCard from '../components/SerieFavCard.vue'
+import { useAuth } from '../stores/auth.js'
+
+const { user } = useAuth()
 
 const API_BASE = import.meta.env.VITE_API_BASE || '/api'
 const error = ref('')
@@ -76,7 +85,9 @@ async function loadMovies() {
   loading.value = true
   error.value = ''
   try {
-    const res = await fetch(`${API_BASE}/movies`)
+    const res = await fetch(`${API_BASE}/movies`, {
+      headers: { 'X-User-Id': user.value?.id || '' }
+    })
     movies.value = await res.json()
   } catch (e) {
     error.value = e?.message || 'Falha ao carregar séries'
@@ -93,7 +104,14 @@ function cancelEdit() { editMovie.value = null }
 async function saveMovie() {
   if (!editMovie.value) return
   try {
-    const res = await fetch(`${API_BASE}/movies/${editMovie.value.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editMovie.value) })
+    const res = await fetch(`${API_BASE}/movies/${editMovie.value.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': user.value?.id || ''
+      },
+      body: JSON.stringify(editMovie.value)
+    })
     if (!res.ok) throw new Error((await res.json()).error || 'Erro ao atualizar')
     editMovie.value = null
     await loadMovies()
@@ -105,7 +123,10 @@ async function saveMovie() {
 async function removeMovie(m) {
   if (!confirm(`Excluir a série "${m.titulo}"?`)) return
   try {
-    const res = await fetch(`${API_BASE}/movies/${m.id}`, { method: 'DELETE' })
+    const res = await fetch(`${API_BASE}/movies/${m.id}`, {
+      method: 'DELETE',
+      headers: { 'X-User-Id': user.value?.id || '' }
+    })
     if (!res.ok) throw new Error((await res.json()).error || 'Erro ao excluir')
     await loadMovies()
   } catch (e) {
@@ -120,7 +141,9 @@ const actorsLoading = ref(false)
 async function loadActors() {
   actorsLoading.value = true
   try {
-    const res = await fetch(`${API_BASE}/actors`)
+    const res = await fetch(`${API_BASE}/actors`, {
+      headers: { 'X-User-Id': user.value?.id || '' }
+    })
     actors.value = await res.json()
   } catch (e) {
     // ignore

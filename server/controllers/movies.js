@@ -51,27 +51,27 @@ export const favoriteFromTmdb = async (req, res, next) => {
       faixaEtaria = await buscarClassificacaoTv(body?.id);
     } catch { faixaEtaria = null; }
     if (faixaEtaria == null) faixaEtaria = 10;
-    const movie = await service.ensureMovieByTitulo(titulo, genero, faixaEtaria, tmdbId);
+    const movie = await service.ensureMovieByTitulo(titulo, genero, faixaEtaria, tmdbId, req.userId);
     res.status(201).json(movie);
   } catch (e) { next(e); }
 };
 
-export const list = async (_req, res, next) => {
-  try { res.json(await service.listMovies()); } catch (e) { next(e); }
+export const list = async (req, res, next) => {
+  try { res.json(await service.listMovies(req.userId)); } catch (e) { next(e); }
 };
 
 export const get = async (req, res, next) => {
-  try { res.json(await service.getMovieById(Number(req.params.id))); } catch (e) { next(e); }
+  try { res.json(await service.getMovieById(Number(req.params.id), req.userId)); } catch (e) { next(e); }
 };
 
 export const create = async (req, res, next) => {
-  try { res.status(201).json(await service.createMovie(req.validatedBody)); } catch (e) { next(e); }
+  try { res.status(201).json(await service.createMovie(req.validatedBody, req.userId)); } catch (e) { next(e); }
 };
 
 export const update = async (req, res, next) => {
-  try { res.json(await service.updateMovie(Number(req.params.id), req.validatedBody)); } catch (e) { next(e); }
+  try { res.json(await service.updateMovie(Number(req.params.id), req.validatedBody, req.userId)); } catch (e) { next(e); }
 };
 
 export const remove = async (req, res, next) => {
-  try { res.json(await service.deleteMovie(Number(req.params.id))); } catch (e) { next(e); }
+  try { res.json(await service.deleteMovie(Number(req.params.id), req.userId)); } catch (e) { next(e); }
 };

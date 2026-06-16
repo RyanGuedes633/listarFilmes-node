@@ -1,6 +1,12 @@
 <template>
   <section class="space-y-4">
-    <p v-if="loading">Carregando detalhes...</p>
+    <div v-if="loading" class="flex flex-col items-center justify-center py-12 gap-3 text-slate-500">
+      <svg class="animate-spin h-8 w-8 text-[#015C91]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <span class="text-sm font-medium">Carregando detalhes...</span>
+    </div>
     <p v-else-if="error" class="text-[crimson]">{{ error }}</p>
 
     <div v-else-if="details">
@@ -41,6 +47,9 @@
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import ActorCard from '../components/ActorCard.vue'
+import { useAuth } from '../stores/auth.js'
+
+const { user } = useAuth()
 
 const route = useRoute()
 const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
@@ -110,7 +119,9 @@ async function loadDetails() {
 
 async function loadFavoritedActors() {
   try {
-    const res = await fetch(`${API_BASE}/actors`)
+    const res = await fetch(`${API_BASE}/actors`, {
+      headers: { 'X-User-Id': user.value?.id || '' }
+    })
     if (!res.ok) return
     const actors = await res.json()
     favoritedActorIds.value = new Set(
@@ -126,7 +137,10 @@ async function favoritarAtor(actor) {
   try {
     const res = await fetch(`${API_BASE}/actors/tmdb/favorite`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': user.value?.id || ''
+      },
       body: JSON.stringify(actor),
     })
     if (!res.ok) {
