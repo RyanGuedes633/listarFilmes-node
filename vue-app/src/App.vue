@@ -1,16 +1,22 @@
 <template>
   <main class="relative w-[min(1440px,100vw)] max-w-[1440px] mx-auto p-4 font-sans">
 
-    <NavBar />
+    <!-- Full-screen background for unauthenticated views -->
+    <div v-if="!user" class="fixed inset-0 bg-slate-200 -z-50 pointer-events-none"></div>
 
-    <div class="app-content pt-[64px] max-[600px]:pt-[76px] min-[981px]:pt-4 min-[981px]:pl-[260px]">
-      <header class="flex items-center justify-between gap-4">
+    <NavBar v-if="user" />
 
-      </header>
-
-      <div class="mt-4">
+    <div
+      :class="[
+        'app-content transition-all duration-300',
+        user
+          ? 'pt-[64px] max-[600px]:pt-[76px] min-[981px]:pt-4 min-[981px]:pl-[260px]'
+          : 'pt-8 flex flex-col items-center justify-center min-h-[85vh] w-full'
+      ]"
+    >
+      <div class="mt-4 w-full">
         <p v-if="error" class="mt-2 text-crimson">{{ error }}</p>
-        <router-view class="mt-4 block" />
+        <router-view class="block w-full" />
       </div>
     </div>
 
@@ -21,8 +27,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import NavBar from './layouts/NavBar.vue'
+import { useAuth } from './stores/auth.js'
 
 const API_BASE = import.meta.env.VITE_API_BASE || '/api'
+
+const { user } = useAuth()
 
 // Shared state
 const error = ref('')

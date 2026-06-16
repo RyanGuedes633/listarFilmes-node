@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import * as controller from '../controllers/actors.js';
 import { validateBody } from '../middlewares/validate.js';
+import { requireAuth } from '../middlewares/auth.js';
 
 const router = Router();
+router.use(requireAuth);
 
 const actorSchema = { nome: { type: 'string', required: true } };
 

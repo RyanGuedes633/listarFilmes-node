@@ -68,6 +68,9 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useAuth } from '../stores/auth.js'
+
+const { user } = useAuth()
 
 const API_BASE = import.meta.env.VITE_API_BASE || '/api'
 const submitting = ref(false)
@@ -87,7 +90,10 @@ async function createActor() {
     const payload = { ...form.value }
     const res = await fetch(`${API_BASE}/actors`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': user.value?.id || ''
+      },
       body: JSON.stringify(payload),
     })
     const data = await res.json()

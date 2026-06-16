@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import moviesRouter from './routes/movies.js';
 import actorsRouter from './routes/actors.js';
+import authRouter from './routes/auth.js';
 import { notFound, errorHandler } from './middlewares/error.js';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
@@ -100,6 +101,7 @@ app.post('/api/seed', async (_req, res) => {
 
 app.use('/api/movies', moviesRouter);
 app.use('/api/actors', actorsRouter);
+app.use('/api/auth', authRouter);
 
 app.use(notFound);
 app.use(errorHandler);

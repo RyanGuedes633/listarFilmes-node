@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import * as controller from '../controllers/movies.js';
 import { validateBody } from '../middlewares/validate.js';
+import { requireAuth } from '../middlewares/auth.js';
 
 const router = Router();
+router.use(requireAuth);
 
 const createSchema = {
   titulo: { type: 'string', required: true },

@@ -88,3 +88,19 @@ No Supabase, certifique-se de provisionar as tabelas `actors`, `movies` e `movie
 
 - Swagger da API externa (tv-api.com): https://tv-api.com/swagger/index.html
 - Swagger da API do projeto: `/api/docs`
+
+
+## Telas de Autenticação (Frontend)
+
+Foram adicionadas telas em Vue 3 estilizadas com TailwindCSS para login e cadastro de usuário.
+
+- Rotas:
+  - /login — página de entrada (e-mail, senha, lembrar de mim)
+  - /cadastro — página de registro (nome, e-mail, senha, confirmação)
+- Navegação: links adicionados na barra de navegação (Entrar / Cadastrar)
+- Variável de ambiente usada no frontend: `VITE_API_BASE` (padrão: `/api`)
+- Endpoints esperados no backend:
+  - POST `${VITE_API_BASE}/auth/login` { email, password, remember? }
+  - POST `${VITE_API_BASE}/auth/register` { name, email, password }
+
+Observação: As telas tratam estados de carregamento e erro. Em caso de sucesso, o login redireciona para a Home e o cadastro redireciona para a página de Login.
