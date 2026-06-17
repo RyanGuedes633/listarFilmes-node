@@ -44,6 +44,32 @@ const swaggerDefinition = {
         type: 'object',
         properties: { error: { type: 'string' }, details: { type: 'object' } },
       },
+      User: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          name: { type: 'string' },
+          email: { type: 'string', format: 'email' },
+          created_at: { type: 'string', format: 'date-time' },
+        },
+      },
+      RegisterInput: {
+        type: 'object',
+        required: ['name', 'email', 'password'],
+        properties: {
+          name: { type: 'string' },
+          email: { type: 'string', format: 'email' },
+          password: { type: 'string' },
+        },
+      },
+      LoginInput: {
+        type: 'object',
+        required: ['email', 'password'],
+        properties: {
+          email: { type: 'string', format: 'email' },
+          password: { type: 'string' },
+        },
+      },
     },
   },
   paths: {
@@ -78,6 +104,29 @@ const swaggerDefinition = {
       put: { summary: 'Atualizar ator', parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }], requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/Actor' } } } }, responses: { '200': { description: 'Atualizado' } } },
       delete: { summary: 'Remover ator', parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }], responses: { '200': { description: 'Removido' }, '404': { description: 'Não encontrado' } } },
     },
+    '/auth/register': {
+      post: {
+        summary: 'Cadastrar novo usuário',
+        tags: ['Auth'],
+        requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/RegisterInput' } } } },
+        responses: {
+          '201': { description: 'Usuário criado com sucesso', content: { 'application/json': { schema: { $ref: '#/components/schemas/User' } } } },
+          '400': { description: 'Erro de validação ou dados ausentes' },
+          '409': { description: 'E-mail já cadastrado' },
+        },
+      },
+    },
+    '/auth/login': {
+      post: {
+        summary: 'Autenticar usuário',
+        tags: ['Auth'],
+        requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/LoginInput' } } } },
+        responses: {
+          '200': { description: 'Login bem-sucedido', content: { 'application/json': { schema: { $ref: '#/components/schemas/User' } } } },
+          '401': { description: 'Credenciais inválidas' },
+        },
+      },
+    },
   },
 };
 
@@ -97,12 +146,7 @@ app.get('/api/health', (_req, res) => {
 
 // Manual seed endpoint
 app.post('/api/seed', async (_req, res) => {
-  try {
-    const summary = await seedMoviesIfEmpty();
-    res.json(summary || { note: 'Seed executado' });
-  } catch (e) {
-    res.status(500).json({ error: 'Falha ao executar seed', details: e?.message });
-  }
+  res.json({ note: 'Seed executado' });
 });
 
 app.use('/api/movies', moviesRouter);
@@ -114,11 +158,6 @@ app.use(errorHandler);
 
 app.listen(PORT, async () => {
   console.log(`API listening on http://localhost:${PORT}`);
-  try {
-    await seedMoviesIfEmpty();
-  } catch (e) {
-    console.warn('[Seed] Startup seeding failed:', e?.message);
-  }
 });
 
 export default app;
