@@ -82,7 +82,13 @@ const swaggerDefinition = {
 };
 
 const openapiSpecification = swaggerJSDoc({ definition: swaggerDefinition, apis: [] });
-app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openapiSpecification));
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openapiSpecification, {
+  customCssUrl: 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.14/swagger-ui.min.css',
+  customJs: [
+    'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.14/swagger-ui-bundle.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.14/swagger-ui-standalone-preset.min.js',
+  ]
+}));
 app.get('/api/openapi.json', (_req, res) => res.json(openapiSpecification));
 
 app.get('/api/health', (_req, res) => {
